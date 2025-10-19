@@ -601,8 +601,10 @@ class DatabaseService {
   // Publish exam to track (one-click publish)
   async publishExamToTrack(examId, trackId) {
     try {
-      // Update exam status
-      await this.updateExam(examId, {
+      console.log(`Publishing exam ${examId} to track ${trackId}...`);
+
+      // Step 1: Update exam status and add track_id
+      const updateResult = await this.updateExam(examId, {
         status: 'published',
         published: true,
         is_active: true,
@@ -611,18 +613,40 @@ class DatabaseService {
         updatedAt: new Date().toISOString()
       });
 
-      // Add exam to track
-      const trackResult = await this.getTrackById(trackId);
-      if (trackResult.success) {
-        const track = trackResult.track;
-        const exams = track.exams || [];
-        if (!exams.includes(examId)) {
-          exams.push(examId);
-          await this.updateTrack(trackId, { exams });
-        }
+      if (!updateResult.success) {
+        console.error('Failed to update exam:', updateResult.error);
+        return { success: false, error: 'Failed to update exam' };
       }
 
-      console.log(`✅ Exam ${examId} published to track ${trackId}`);
+      console.log(`✅ Exam ${examId} status updated`);
+
+      // Step 2: Get current track data
+      const trackResult = await this.getTrackById(trackId);
+      if (!trackResult.success) {
+        console.error('Failed to get track:', trackResult.error);
+        return { success: false, error: 'Failed to get track' };
+      }
+
+      const track = trackResult.track;
+      const exams = track.exams || [];
+
+      // Step 3: Add exam to track's exams array if not already there
+      if (!exams.includes(examId)) {
+        exams.push(examId);
+        console.log(`Adding exam ${examId} to track exams array:`, exams);
+
+        const updateTrackResult = await this.updateTrack(trackId, { exams });
+        if (!updateTrackResult.success) {
+          console.error('Failed to update track:', updateTrackResult.error);
+          return { success: false, error: 'Failed to update track' };
+        }
+
+        console.log(`✅ Track ${trackId} updated with exam ${examId}`);
+      } else {
+        console.log(`Exam ${examId} already in track ${trackId}`);
+      }
+
+      console.log(`✅ Exam ${examId} successfully published to track ${trackId}`);
       return { success: true };
     } catch (error) {
       console.error('Error publishing exam to track:', error);

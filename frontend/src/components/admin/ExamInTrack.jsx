@@ -20,17 +20,29 @@ export default function ExamInTrack({ track, onTrackUpdated }) {
   const fetchExamsInTrack = async () => {
     setLoading(true);
     try {
-      const response = await databaseService.getExams();
-      if (response.success) {
-        // Filter exams that belong to this track
-        const trackExams = (response.exams || []).filter(
-          exam => exam.track_id === track.id
-        );
-        setExams(trackExams);
+      // Get all exams
+      const examsResponse = await databaseService.getExams();
+      if (!examsResponse.success) {
+        console.error('Failed to fetch exams');
+        setExams([]);
+        return;
       }
+
+      const allExams = examsResponse.exams || [];
+      console.log('All exams:', allExams);
+      console.log('Track exams array:', track.exams);
+
+      // Get exams that are in this track's exams array
+      const trackExams = allExams.filter(exam =>
+        track.exams && track.exams.includes(exam.id)
+      );
+
+      console.log('Filtered track exams:', trackExams);
+      setExams(trackExams);
     } catch (error) {
       console.error('Error fetching exams:', error);
       toast.error('Failed to fetch exams');
+      setExams([]);
     } finally {
       setLoading(false);
     }
