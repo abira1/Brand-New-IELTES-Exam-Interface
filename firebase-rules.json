@@ -75,6 +75,15 @@
         ".read": "auth != null",
         ".write": "auth != null"
       }
+    },
+
+    "exam_tracks": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('admin/whitelist').child(auth.token.email.replace('.', '_').replace('@', '_')).exists()",
+      "$trackId": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('admin/whitelist').child(auth.token.email.replace('.', '_').replace('@', '_')).exists()"
+      }
     }
   }
 }
