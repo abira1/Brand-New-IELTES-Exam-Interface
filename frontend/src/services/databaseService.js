@@ -406,10 +406,11 @@ class DatabaseService {
     });
   }
 
-  // Get all exams (admin)
+  // Get all exams (admin) - without ordering to avoid index requirement
   async getExams() {
     try {
-      const { data } = await this.query('exams', 'createdAt');
+      // Use simple get instead of query to avoid index requirement
+      const { data } = await this.get('exams');
       if (!data) return { success: true, exams: [] };
 
       const exams = Object.values(data).map(exam => ({
@@ -421,6 +422,9 @@ class DatabaseService {
         is_visible: exam.is_visible,
         is_active: exam.is_active,
         question_count: exam.question_count,
+        totalQuestions: exam.question_count || exam.totalQuestions,
+        duration: exam.duration_seconds ? Math.ceil(exam.duration_seconds / 60) : 0,
+        track_id: exam.track_id,
         createdAt: exam.createdAt
       }));
 

@@ -26,6 +26,7 @@
     "exams": {
       ".read": "auth != null",
       ".write": true,
+      ".indexOn": ["createdAt", "published", "is_visible", "is_active"],
       "$examId": {
         ".read": "auth != null",
         ".write": true
@@ -35,6 +36,7 @@
     "exams_full": {
       ".read": "auth != null",
       ".write": true,
+      ".indexOn": ["createdAt", "published", "is_visible", "is_active"],
       "$examId": {
         ".read": "auth != null",
         ".write": true
