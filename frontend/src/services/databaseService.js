@@ -232,7 +232,7 @@ class DatabaseService {
   // Exams
   async createExam(examData) {
     const examId = examData.id || push(ref(database, 'exams')).key;
-    
+
     // Create light exam metadata
     const lightExam = {
       id: examId,
@@ -245,22 +245,39 @@ class DatabaseService {
       question_count: examData.question_count || 0,
       createdAt: new Date().toISOString()
     };
-    
+
     // Create full exam data
     const fullExam = {
       ...examData,
       id: examId,
       createdAt: new Date().toISOString()
     };
-    
+
     try {
       // Save both versions
       await set(ref(database, `exams/${examId}`), lightExam);
       await set(ref(database, `exams_full/${examId}`), fullExam);
-      
+
       return { success: true, examId, data: fullExam };
     } catch (error) {
       console.error('Error creating exam:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Update exam status and metadata
+  async updateExam(examId, updates) {
+    try {
+      // Update light metadata
+      await update(ref(database, `exams/${examId}`), updates);
+
+      // Also update full exam data
+      await update(ref(database, `exams_full/${examId}`), updates);
+
+      console.log(`✅ Exam ${examId} updated:`, updates);
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating exam:', error);
       return { success: false, error: error.message };
     }
   }

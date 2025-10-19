@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Upload, FileJson, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Upload, FileJson, CheckCircle, XCircle, Loader2, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Input } from '../ui/input';
@@ -15,6 +16,7 @@ export default function ExamImport() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -277,18 +279,60 @@ export default function ExamImport() {
             <Alert className="bg-green-50 border-green-200">
               <CheckCircle className="h-4 w-4 text-green-600" />
               <AlertDescription>
-                <div className="space-y-2">
-                  <p className="font-medium text-green-800">{result.message}</p>
+                <div className="space-y-4">
+                  <div>
+                    <p className="font-medium text-green-800 text-lg">{result.message}</p>
+                  </div>
+
+                  {/* Exam Details */}
                   {result.details && (
-                    <div className="text-sm text-green-700">
-                      <p>Title: {result.details.title}</p>
-                      <p>Total Questions: {result.details.totalQuestions}</p>
-                      {result.details.sections && result.details.sections.length > 0 && (
-                        <p>Sections: {result.details.sections.map(s => s.name).join(', ')}</p>
-                      )}
+                    <div className="bg-white rounded p-3 border border-green-200">
+                      <p className="font-medium text-gray-800 mb-2">Exam Details:</p>
+                      <div className="text-sm text-gray-700 space-y-1">
+                        <p><strong>Title:</strong> {result.details.title}</p>
+                        <p><strong>Total Questions:</strong> {result.details.totalQuestions}</p>
+                        {result.details.sections && result.details.sections.length > 0 && (
+                          <p><strong>Sections:</strong> {result.details.sections.map(s => s.name).join(', ')}</p>
+                        )}
+                        <p className="text-xs text-gray-500 mt-2"><strong>Exam ID:</strong> {result.examId}</p>
+                      </div>
                     </div>
                   )}
-                  <p className="text-xs text-gray-600">Exam ID: {result.examId}</p>
+
+                  {/* Next Steps */}
+                  <div className="bg-white rounded p-3 border border-green-200">
+                    <p className="font-medium text-gray-800 mb-2">Next Steps:</p>
+                    <ol className="text-sm text-gray-700 space-y-1 list-decimal list-inside">
+                      <li>Go to Exam Management</li>
+                      <li>Click the <strong>[Publish]</strong> button</li>
+                      <li>Click the <strong>[Activate]</strong> button</li>
+                      <li>Click the <strong>[Make Visible]</strong> button</li>
+                      <li>Students can now see and take the exam!</li>
+                    </ol>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      onClick={() => navigate('/admin/exams')}
+                      className="bg-green-600 hover:bg-green-700 flex-1"
+                    >
+                      <ArrowRight className="mr-2 h-4 w-4" />
+                      Go to Exam Management
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setResult(null);
+                        setSelectedFile(null);
+                        setExamTitle('');
+                        const fileInput = document.getElementById('json-file-input');
+                        if (fileInput) fileInput.value = '';
+                      }}
+                    >
+                      Close
+                    </Button>
+                  </div>
                 </div>
               </AlertDescription>
             </Alert>

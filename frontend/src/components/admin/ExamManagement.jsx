@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, Eye, Edit, Plus, FileText, Loader2 } from 'lucide-react';
+import { Trash2, Eye, Edit, Plus, FileText, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
+import { toast } from '../ui/sonner';
 import databaseService from '../../services/databaseService';
+import functionsService from '../../services/functionsService';
 import ExamImport from './ExamImport';
 
 export default function ExamManagement() {
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showImport, setShowImport] = useState(false);
+  const [updatingExamId, setUpdatingExamId] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchExams();
@@ -38,10 +43,72 @@ export default function ExamManagement() {
       const response = await functionsService.deleteExam(examId);
       if (response.success) {
         setExams(exams.filter(exam => exam.id !== examId));
+        toast.success('Exam deleted successfully');
       }
     } catch (error) {
       console.error('Error deleting exam:', error);
-      alert('Failed to delete exam');
+      toast.error('Failed to delete exam');
+    }
+  };
+
+  const handlePublish = async (examId) => {
+    setUpdatingExamId(examId);
+    try {
+      const result = await databaseService.updateExam(examId, {
+        status: 'published',
+        published: true
+      });
+      if (result.success) {
+        toast.success('✅ Exam published successfully');
+        fetchExams();
+      } else {
+        toast.error('Failed to publish exam');
+      }
+    } catch (error) {
+      console.error('Error publishing exam:', error);
+      toast.error('Error publishing exam');
+    } finally {
+      setUpdatingExamId(null);
+    }
+  };
+
+  const handleActivate = async (examId) => {
+    setUpdatingExamId(examId);
+    try {
+      const result = await databaseService.updateExam(examId, {
+        is_active: true
+      });
+      if (result.success) {
+        toast.success('✅ Exam activated successfully');
+        fetchExams();
+      } else {
+        toast.error('Failed to activate exam');
+      }
+    } catch (error) {
+      console.error('Error activating exam:', error);
+      toast.error('Error activating exam');
+    } finally {
+      setUpdatingExamId(null);
+    }
+  };
+
+  const handleMakeVisible = async (examId) => {
+    setUpdatingExamId(examId);
+    try {
+      const result = await databaseService.updateExam(examId, {
+        is_visible: true
+      });
+      if (result.success) {
+        toast.success('✅ Exam is now visible to students');
+        fetchExams();
+      } else {
+        toast.error('Failed to make exam visible');
+      }
+    } catch (error) {
+      console.error('Error making exam visible:', error);
+      toast.error('Error making exam visible');
+    } finally {
+      setUpdatingExamId(null);
     }
   };
 
@@ -147,7 +214,33 @@ export default function ExamManagement() {
                   </div>
                 )}
 
-                <div className="flex gap-2">
+                {/* Status Indicators */}
+                <div className="mb-4 flex flex-wrap gap-2">
+                  <div className="flex items-center gap-1 text-xs">
+                    {exam.published ? (
+                      <><CheckCircle className="h-4 w-4 text-green-600" /> Published</>
+                    ) : (
+                      <><AlertCircle className="h-4 w-4 text-gray-400" /> Not Published</>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 text-xs">
+                    {exam.is_active ? (
+                      <><CheckCircle className="h-4 w-4 text-green-600" /> Active</>
+                    ) : (
+                      <><AlertCircle className="h-4 w-4 text-gray-400" /> Inactive</>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 text-xs">
+                    {exam.is_visible ? (
+                      <><CheckCircle className="h-4 w-4 text-green-600" /> Visible</>
+                    ) : (
+                      <><AlertCircle className="h-4 w-4 text-gray-400" /> Hidden</>
+                    )}
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-wrap gap-2">
                   <Button variant="outline" size="sm">
                     <Eye className="mr-2 h-4 w-4" />
                     View
@@ -156,6 +249,66 @@ export default function ExamManagement() {
                     <Edit className="mr-2 h-4 w-4" />
                     Edit
                   </Button>
+
+                  {/* Publish Button - Show if not published */}
+                  {!exam.published && (
+                    <Button
+                      size="sm"
+                      onClick={() => handlePublish(exam.id)}
+                      disabled={updatingExamId === exam.id}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      {updatingExamId === exam.id ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                      )}
+                      Publish
+                    </Button>
+                  )}
+
+                  {/* Activate Button - Show if published but not active */}
+                  {exam.published && !exam.is_active && (
+                    <Button
+                      size="sm"
+                      onClick={() => handleActivate(exam.id)}
+                      disabled={updatingExamId === exam.id}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {updatingExamId === exam.id ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                      )}
+                      Activate
+                    </Button>
+                  )}
+
+                  {/* Make Visible Button - Show if active but not visible */}
+                  {exam.is_active && !exam.is_visible && (
+                    <Button
+                      size="sm"
+                      onClick={() => handleMakeVisible(exam.id)}
+                      disabled={updatingExamId === exam.id}
+                      className="bg-purple-600 hover:bg-purple-700"
+                    >
+                      {updatingExamId === exam.id ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Eye className="mr-2 h-4 w-4" />
+                      )}
+                      Make Visible
+                    </Button>
+                  )}
+
+                  {/* Success Badge - Show if all three are true */}
+                  {exam.published && exam.is_active && exam.is_visible && (
+                    <Badge className="bg-green-600 text-white">
+                      <CheckCircle className="mr-1 h-3 w-3" />
+                      Ready for Students
+                    </Badge>
+                  )}
+
                   <Button
                     variant="outline"
                     size="sm"
