@@ -170,37 +170,50 @@ class FunctionsService {
       console.log('📥 [getExamById] Fetching exam:', examId);
       console.log('📥 [getExamById] URL:', url);
 
-      const response = await fetch(url);
+      // Add timeout to prevent hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-      console.log('📥 [getExamById] Response status:', response.status);
-      console.log('📥 [getExamById] Response headers:', {
-        'content-type': response.headers.get('content-type'),
-        'content-length': response.headers.get('content-length')
-      });
+      try {
+        const response = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
 
-      if (!response.ok) {
-        console.error('📥 [getExamById] Response not OK:', response.status);
-        const contentType = response.headers.get('content-type');
+        console.log('📥 [getExamById] Response status:', response.status);
+        console.log('📥 [getExamById] Response headers:', {
+          'content-type': response.headers.get('content-type'),
+          'content-length': response.headers.get('content-length')
+        });
 
-        let errorMessage = 'Failed to fetch exam';
-        try {
-          if (contentType && contentType.includes('application/json')) {
-            const errorData = await response.json();
-            errorMessage = errorData.error || errorData.message || errorMessage;
-          } else {
-            const text = await response.text();
-            errorMessage = text.substring(0, 200);
+        if (!response.ok) {
+          console.error('📥 [getExamById] Response not OK:', response.status);
+          const contentType = response.headers.get('content-type');
+
+          let errorMessage = 'Failed to fetch exam';
+          try {
+            if (contentType && contentType.includes('application/json')) {
+              const errorData = await response.json();
+              errorMessage = errorData.error || errorData.message || errorMessage;
+            } else {
+              const text = await response.text();
+              errorMessage = text.substring(0, 200);
+            }
+          } catch (parseError) {
+            console.error('📥 [getExamById] Error parsing error response:', parseError);
           }
-        } catch (parseError) {
-          console.error('📥 [getExamById] Error parsing error response:', parseError);
+
+          throw new Error(errorMessage);
         }
 
-        throw new Error(errorMessage);
+        const exam = await response.json();
+        console.log('📥 [getExamById] Exam loaded successfully:', exam.id);
+        return { success: true, exam };
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        if (fetchError.name === 'AbortError') {
+          throw new Error('Request timeout - backend took too long to respond');
+        }
+        throw fetchError;
       }
-
-      const exam = await response.json();
-      console.log('📥 [getExamById] Exam loaded successfully:', exam.id);
-      return { success: true, exam };
     } catch (error) {
       console.error('❌ [getExamById] Error fetching exam:', error);
       return { success: false, error: error.message };

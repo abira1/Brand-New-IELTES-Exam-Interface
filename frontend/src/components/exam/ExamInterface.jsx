@@ -24,6 +24,7 @@ import {
   EyeOff
 } from 'lucide-react';
 import functionsService from '../../services/functionsService';
+import databaseService from '../../services/databaseService';
 import { useAuth } from '../../contexts/AuthContext';
 import { QuestionRenderer } from './QuestionRenderer';
 import { AudioPlayer } from './AudioPlayer';
@@ -96,15 +97,29 @@ export const ExamInterface = () => {
   const loadExam = async () => {
     try {
       setLoading(true);
-      const result = await functionsService.getExamById(examId);
-      
+      console.log('🎯 [ExamInterface] Loading exam:', examId);
+
+      // Try to get exam from backend first, fallback to Firebase if backend fails
+      let result;
+      try {
+        console.log('🎯 [ExamInterface] Attempting to fetch from backend...');
+        result = await functionsService.getExamById(examId);
+        console.log('🎯 [ExamInterface] Backend response:', result.success ? 'Success' : 'Failed');
+      } catch (backendError) {
+        console.warn('⚠️  [ExamInterface] Backend failed, falling back to Firebase:', backendError.message);
+        // Fallback to Firebase if backend fails
+        result = await databaseService.getExamById(examId);
+      }
+
       if (result.success) {
         const examData = result.exam;
+        console.log('🎯 [ExamInterface] Exam loaded successfully:', examData.id);
         setExam(examData);
-        
+
         // Try to load existing progress
+        console.log('🎯 [ExamInterface] Loading progress for student:', user.uid);
         const progressResult = await functionsService.getProgress(examId, user.uid);
-        
+
         if (progressResult.success && progressResult.progress) {
           // Restore progress
           const progress = progressResult.progress;
@@ -112,14 +127,14 @@ export const ExamInterface = () => {
           setReviewFlags(new Set(progress.reviewFlags || []));
           setCurrentQuestionIndex(progress.currentQuestionIndex || 0);
           setAudioProgress(progress.audioProgress || 0); // Restore audio progress
-          
+
           // Calculate remaining time
           const totalDuration = examData.duration ? examData.duration * 60 : 10800;
           const timeSpent = progress.timeSpent || 0;
           setTimeLeft(Math.max(0, totalDuration - timeSpent));
           setExamStartTime(new Date(Date.now() - (timeSpent * 1000)));
-          
-          console.log('Progress restored:', {
+
+          console.log('✅ [ExamInterface] Progress restored:', {
             answers: Object.keys(progress.answers || {}).length,
             currentQuestion: progress.currentQuestionIndex,
             timeSpent: timeSpent,
@@ -127,20 +142,23 @@ export const ExamInterface = () => {
           });
         } else {
           // New exam session
+          console.log('✅ [ExamInterface] New exam session started');
           setTimeLeft(examData.duration ? examData.duration * 60 : 10800);
           setExamStartTime(new Date());
         }
-        
+
         // Initialize current section
         if (examData.sections && examData.sections.length > 0) {
           setCurrentSection(examData.sections[0].name);
         }
-        
+
         setError(null);
       } else {
+        console.error('❌ [ExamInterface] Failed to load exam:', result.error);
         setError(result.error || 'Failed to load exam');
       }
     } catch (err) {
+      console.error('❌ [ExamInterface] Error loading exam:', err);
       setError('Error loading exam: ' + err.message);
     } finally {
       setLoading(false);
