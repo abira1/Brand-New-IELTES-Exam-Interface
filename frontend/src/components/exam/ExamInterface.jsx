@@ -99,17 +99,9 @@ export const ExamInterface = () => {
       setLoading(true);
       console.log('🎯 [ExamInterface] Loading exam:', examId);
 
-      // Try to get exam from backend first, fallback to Firebase if backend fails
-      let result;
-      try {
-        console.log('🎯 [ExamInterface] Attempting to fetch from backend...');
-        result = await functionsService.getExamById(examId);
-        console.log('🎯 [ExamInterface] Backend response:', result.success ? 'Success' : 'Failed');
-      } catch (backendError) {
-        console.warn('⚠️  [ExamInterface] Backend failed, falling back to Firebase:', backendError.message);
-        // Fallback to Firebase if backend fails
-        result = await databaseService.getExamById(examId);
-      }
+      // Use Firebase directly to avoid backend issues
+      console.log('🎯 [ExamInterface] Fetching exam from Firebase...');
+      const result = await databaseService.getExamById(examId);
 
       if (result.success) {
         const examData = result.exam;
