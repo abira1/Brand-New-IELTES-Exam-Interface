@@ -167,16 +167,42 @@ class FunctionsService {
   async getExamById(examId) {
     try {
       const url = getFunctionsUrl('getExamById') + `?id=${examId}`;
+      console.log('📥 [getExamById] Fetching exam:', examId);
+      console.log('📥 [getExamById] URL:', url);
+
       const response = await fetch(url);
-      
+
+      console.log('📥 [getExamById] Response status:', response.status);
+      console.log('📥 [getExamById] Response headers:', {
+        'content-type': response.headers.get('content-type'),
+        'content-length': response.headers.get('content-length')
+      });
+
       if (!response.ok) {
-        throw new Error('Failed to fetch exam');
+        console.error('📥 [getExamById] Response not OK:', response.status);
+        const contentType = response.headers.get('content-type');
+
+        let errorMessage = 'Failed to fetch exam';
+        try {
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorData.message || errorMessage;
+          } else {
+            const text = await response.text();
+            errorMessage = text.substring(0, 200);
+          }
+        } catch (parseError) {
+          console.error('📥 [getExamById] Error parsing error response:', parseError);
+        }
+
+        throw new Error(errorMessage);
       }
-      
+
       const exam = await response.json();
+      console.log('📥 [getExamById] Exam loaded successfully:', exam.id);
       return { success: true, exam };
     } catch (error) {
-      console.error('Error fetching exam:', error);
+      console.error('❌ [getExamById] Error fetching exam:', error);
       return { success: false, error: error.message };
     }
   }
@@ -427,16 +453,31 @@ class FunctionsService {
         },
         body: JSON.stringify({ submissionId }),
       });
-      
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Scoring failed');
+        console.error('❌ [scoreSubmission] Response not OK:', response.status);
+        const contentType = response.headers.get('content-type');
+
+        let errorMessage = 'Scoring failed';
+        try {
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorData.message || errorMessage;
+          } else {
+            const text = await response.text();
+            errorMessage = text.substring(0, 200);
+          }
+        } catch (parseError) {
+          console.error('❌ [scoreSubmission] Error parsing error response:', parseError);
+        }
+
+        throw new Error(errorMessage);
       }
-      
+
       const result = await response.json();
       return { success: true, data: result };
     } catch (error) {
-      console.error('Error scoring submission:', error);
+      console.error('❌ [scoreSubmission] Error scoring submission:', error);
       return { success: false, error: error.message };
     }
   }
@@ -454,16 +495,31 @@ class FunctionsService {
         },
         body: JSON.stringify({}),
       });
-      
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Bulk scoring failed');
+        console.error('❌ [scoreAllSubmissions] Response not OK:', response.status);
+        const contentType = response.headers.get('content-type');
+
+        let errorMessage = 'Bulk scoring failed';
+        try {
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorData.message || errorMessage;
+          } else {
+            const text = await response.text();
+            errorMessage = text.substring(0, 200);
+          }
+        } catch (parseError) {
+          console.error('❌ [scoreAllSubmissions] Error parsing error response:', parseError);
+        }
+
+        throw new Error(errorMessage);
       }
-      
+
       const result = await response.json();
       return { success: true, data: result };
     } catch (error) {
-      console.error('Error in bulk scoring:', error);
+      console.error('❌ [scoreAllSubmissions] Error in bulk scoring:', error);
       return { success: false, error: error.message };
     }
   }

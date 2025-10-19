@@ -841,23 +841,37 @@ app.get('/getExams', async (req, res) => {
 app.get('/getExamById', async (req, res) => {
   try {
     const examId = req.query.id;
-    
+
+    console.log('📥 [getExamById] Request received for exam:', examId);
+
     if (!examId) {
+      console.error('❌ [getExamById] No exam ID provided');
       return res.status(400).json({ error: 'Exam ID required' });
     }
-    
+
     const snapshot = await db.ref(`exams_full/${examId}`).once('value');
-    
+
     if (!snapshot.exists()) {
+      console.error('❌ [getExamById] Exam not found:', examId);
       return res.status(404).json({ error: 'Exam not found' });
     }
-    
-    res.json({
+
+    const examData = {
       id: snapshot.key,
       ...snapshot.val()
-    });
+    };
+
+    console.log('✅ [getExamById] Exam found, sending response:', examData.id);
+
+    // Set proper headers to prevent caching issues
+    res.set('Content-Type', 'application/json');
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+
+    res.json(examData);
   } catch (error) {
-    console.error('Error fetching exam:', error);
+    console.error('❌ [getExamById] Error fetching exam:', error);
     res.status(500).json({ error: error.message });
   }
 });
