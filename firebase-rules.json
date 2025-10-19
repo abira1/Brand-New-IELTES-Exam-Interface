@@ -1,0 +1,80 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "students": {
+      ".read": "auth != null",
+      ".write": false,
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.uid === $uid || root.child('admin/whitelist').child(auth.token.email.replace('.', '_').replace('@', '_')).exists())"
+      }
+    },
+
+    "admin": {
+      "whitelist": {
+        ".read": "auth != null",
+        ".write": false,
+        "$normalizedEmail": {
+          ".read": "auth != null",
+          ".write": false
+        }
+      }
+    },
+
+    "exams": {
+      ".read": "auth != null",
+      ".write": true,
+      "$examId": {
+        ".read": "auth != null",
+        ".write": true
+      }
+    },
+
+    "exams_full": {
+      ".read": "auth != null",
+      ".write": true,
+      "$examId": {
+        ".read": "auth != null",
+        ".write": true
+      }
+    },
+
+    "submissions": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$submissionId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+
+    "results": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$resultId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+
+    "reports": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$reportId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+
+    "exam_progress": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$progressId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    }
+  }
+}

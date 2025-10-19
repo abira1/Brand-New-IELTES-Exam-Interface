@@ -1,0 +1,62 @@
+{
+  "title": "IELTS Listening Test - Multiple Choice",
+  "section": "Listening",
+  "duration": 30,
+  "description": "IELTS Listening section with audio playback",
+  "audioFile": "Multiple Choice (one answer)/sample-audio.ogg",
+  "questions": [
+    {
+      "id": "q1",
+      "number": 1,
+      "type": "mcq_single",
+      "text": "What is the main topic of the conversation?",
+      "options": [
+        "Booking a hotel room",
+        "Planning a holiday",
+        "Discussing work schedules",
+        "Arranging transportation"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": "q2",
+      "number": 2,
+      "type": "mcq_single",
+      "text": "When does the conversation take place?",
+      "options": [
+        "Morning",
+        "Afternoon",
+        "Evening",
+        "Night"
+      ],
+      "answer": "B"
+    },
+    {
+      "id": "q3",
+      "number": 3,
+      "type": "mcq_single",
+      "text": "How many people are involved in the conversation?",
+      "options": [
+        "Two",
+        "Three",
+        "Four",
+        "Five"
+      ],
+      "answer": "A"
+    },
+    {
+      "id": "q4",
+      "number": 4,
+      "type": "fill_gaps",
+      "text": "The speaker mentions that the event will last for _____ days.",
+      "answer": "three"
+    },
+    {
+      "id": "q5",
+      "number": 5,
+      "type": "fill_gaps",
+      "text": "The cost per person is _____ pounds.",
+      "answer": "45"
+    }
+  ]
+}

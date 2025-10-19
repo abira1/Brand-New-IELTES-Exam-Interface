@@ -1,0 +1,34 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Public assets (images, audio, css from ZIP imports)
+    match /public/{allPaths=**} {
+      allow read;
+      allow write: if request.auth != null 
+                   && exists(/databases/$(database)/documents/admin/whitelist/$(request.auth.token.email.replace('.', ',')));
+    }
+    
+    // Exam assets (organized by exam ID)
+    match /exams/{examId}/{allPaths=**} {
+      allow read: if request.auth != null 
+                  && (exists(/databases/$(database)/documents/students/$(request.auth.uid)) 
+                      || exists(/databases/$(database)/documents/admin/whitelist/$(request.auth.token.email.replace('.', ','))));
+      allow write: if request.auth != null 
+                   && exists(/databases/$(database)/documents/admin/whitelist/$(request.auth.token.email.replace('.', ',')));
+    }
+    
+    // Student uploads (profile pictures, etc.)
+    match /students/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null 
+                         && (request.auth.uid == userId 
+                             || exists(/databases/$(database)/documents/admin/whitelist/$(request.auth.token.email.replace('.', ','))));
+    }
+    
+    // Temporary uploads (for import processing)
+    match /tmp/{allPaths=**} {
+      allow read, write: if request.auth != null 
+                         && exists(/databases/$(database)/documents/admin/whitelist/$(request.auth.token.email.replace('.', ',')))
+                         && request.time < timestamp.date(2025, 1, 1); // Expire temp files
+    }
+  }
+}

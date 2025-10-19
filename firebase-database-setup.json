@@ -1,0 +1,64 @@
+{
+  "admin": {
+    "whitelist": {
+      "toiral_dev_gmail_com": true,
+      "shahsultanweb_gmail_com": true
+    }
+  },
+  "exams": {
+    "demo-exam-1": {
+      "title": "IELTS Mock Test - General Training",
+      "description": "Complete mock test with all four skills: Listening, Reading, Writing, and Speaking",
+      "difficulty": "intermediate",
+      "duration": 165,
+      "sections": {
+        "listening": {
+          "duration": 40,
+          "questions": 40
+        },
+        "reading": {
+          "duration": 60,
+          "questions": 40
+        },
+        "writing": {
+          "duration": 60,
+          "tasks": 2
+        },
+        "speaking": {
+          "duration": 15,
+          "parts": 3
+        }
+      },
+      "status": "active",
+      "createdAt": "2024-10-18T23:00:00.000Z",
+      "createdBy": "admin"
+    }
+  },
+  "settings": {
+    "platform": {
+      "name": "IELTS Mock Test Platform",
+      "version": "1.0.0",
+      "maintenance": false,
+      "registrationOpen": true
+    },
+    "scoring": {
+      "passingScore": 6.0,
+      "maxScore": 9.0,
+      "bandScores": [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0]
+    },
+    "notifications": {
+      "emailEnabled": true,
+      "welcomeEmailEnabled": true,
+      "approvalEmailEnabled": true
+    }
+  },
+  "reports": {
+    "overview": {
+      "totalStudents": 0,
+      "totalExams": 1,
+      "totalSubmissions": 0,
+      "avgScore": 0,
+      "lastUpdated": "2024-10-18T23:00:00.000Z"
+    }
+  }
+}
