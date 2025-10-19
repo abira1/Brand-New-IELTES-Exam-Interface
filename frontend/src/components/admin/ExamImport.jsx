@@ -314,7 +314,16 @@ export default function ExamImport() {
                   {/* Action Buttons */}
                   <div className="flex gap-2 pt-2">
                     <Button
-                      onClick={() => navigate('/admin/exams')}
+                      onClick={() => {
+                        // Close the import form and refresh the exam list
+                        setResult(null);
+                        setSelectedFile(null);
+                        setExamTitle('');
+                        const fileInput = document.getElementById('json-file-input');
+                        if (fileInput) fileInput.value = '';
+                        // Trigger parent component to show exam list
+                        window.dispatchEvent(new CustomEvent('closeImportForm'));
+                      }}
                       className="bg-green-600 hover:bg-green-700 flex-1"
                     >
                       <ArrowRight className="mr-2 h-4 w-4" />

@@ -20,6 +20,17 @@ export default function ExamManagement() {
     fetchExams();
   }, []);
 
+  // Listen for close import form event
+  useEffect(() => {
+    const handleCloseImport = () => {
+      setShowImport(false);
+      fetchExams(); // Refresh the exam list
+    };
+
+    window.addEventListener('closeImportForm', handleCloseImport);
+    return () => window.removeEventListener('closeImportForm', handleCloseImport);
+  }, []);
+
   const fetchExams = async () => {
     setLoading(true);
     try {
