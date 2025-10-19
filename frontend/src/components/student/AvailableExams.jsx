@@ -46,15 +46,27 @@ export const AvailableExams = () => {
   const loadExams = async () => {
     try {
       setLoading(true);
+      console.log('📚 [AvailableExams] Loading exams for student:', user?.uid);
+
       const result = await databaseService.getAvailableExams();
 
+      console.log('📚 [AvailableExams] Result:', {
+        success: result.success,
+        examsCount: result.exams?.length || 0,
+        error: result.error
+      });
+
       if (result.success) {
-        setExams(result.exams || []);
+        const examsData = result.exams || [];
+        console.log('📚 [AvailableExams] Setting exams:', examsData);
+        setExams(examsData);
         setError(null);
       } else {
+        console.error('📚 [AvailableExams] Failed to load exams:', result.error);
         setError(result.error || 'Failed to load exams');
       }
     } catch (err) {
+      console.error('📚 [AvailableExams] Exception:', err);
       setError('Error loading exams: ' + err.message);
     } finally {
       setLoading(false);

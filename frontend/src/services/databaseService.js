@@ -302,15 +302,50 @@ class DatabaseService {
   // Get available exams for student
   async getAvailableExams() {
     try {
-      const { data } = await this.query('exams', 'createdAt');
-      if (!data) return { success: true, exams: [] };
-      
-      const exams = Object.values(data).filter(exam => 
-        exam.published && exam.is_visible && exam.is_active
-      );
-      
+      console.log('📚 [getAvailableExams] Fetching available exams for student...');
+
+      // Use simple get instead of query to avoid index requirement
+      const { data } = await this.get('exams');
+      if (!data) {
+        console.log('📚 [getAvailableExams] No exams found in database');
+        return { success: true, exams: [] };
+      }
+
+      console.log('📚 [getAvailableExams] All exams from DB:', Object.keys(data).length);
+
+      const exams = Object.values(data)
+        .filter(exam => {
+          const isPublished = exam.published === true;
+          const isVisible = exam.is_visible === true;
+          const isActive = exam.is_active === true;
+
+          console.log(`📚 [getAvailableExams] Exam ${exam.id}:`, {
+            published: isPublished,
+            is_visible: isVisible,
+            is_active: isActive,
+            passes: isPublished && isVisible && isActive
+          });
+
+          return isPublished && isVisible && isActive;
+        })
+        .map(exam => ({
+          id: exam.id,
+          title: exam.title,
+          exam_type: exam.exam_type,
+          duration_seconds: exam.duration_seconds,
+          question_count: exam.question_count,
+          totalQuestions: exam.question_count || exam.totalQuestions,
+          duration: exam.duration_seconds ? Math.ceil(exam.duration_seconds / 60) : 0,
+          published: exam.published,
+          is_visible: exam.is_visible,
+          is_active: exam.is_active,
+          createdAt: exam.createdAt
+        }));
+
+      console.log('📚 [getAvailableExams] Available exams for student:', exams.length);
       return { success: true, exams };
     } catch (error) {
+      console.error('❌ [getAvailableExams] Error fetching available exams:', error);
       return { success: false, error: error.message };
     }
   }
