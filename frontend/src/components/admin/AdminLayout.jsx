@@ -18,6 +18,7 @@ import { cn } from '../../lib/utils';
 const navigation = [
   { name: 'Overview', href: '/admin/overview', icon: LayoutDashboard },
   { name: 'Exams', href: '/admin/exams', icon: FileText },
+  { name: 'Tracks', href: '/admin/tracks', icon: FileText },
   { name: 'Students', href: '/admin/students', icon: Users },
   { name: 'Submissions', href: '/admin/submissions', icon: ClipboardList },
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },

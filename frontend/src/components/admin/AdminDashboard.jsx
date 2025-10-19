@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { AdminLayout } from './AdminLayout';
 import { AdminOverview } from './AdminOverview';
 import ExamManagement from './ExamManagement';
+import TrackManager from './TrackManager';
 import { StudentManagement } from './StudentManagement';
 import { SubmissionReview } from './SubmissionReview';
 import { Analytics } from './Analytics';
@@ -16,6 +17,7 @@ export const AdminDashboard = () => {
         <Route index element={<AdminOverview />} />
         <Route path="overview" element={<AdminOverview />} />
         <Route path="exams/*" element={<ExamManagement />} />
+        <Route path="tracks/*" element={<TrackManager />} />
         <Route path="students/*" element={<StudentManagement />} />
         <Route path="submissions/*" element={<SubmissionReview />} />
         <Route path="analytics/*" element={<Analytics />} />

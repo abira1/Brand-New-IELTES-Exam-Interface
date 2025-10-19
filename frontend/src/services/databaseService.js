@@ -464,6 +464,176 @@ class DatabaseService {
       return { success: false, error: error.message };
     }
   }
+
+  // ==================== TRACK MANAGEMENT ====================
+
+  // Create a new track
+  async createTrack(trackData) {
+    try {
+      const trackId = trackData.id || this.generateId();
+      const track = {
+        id: trackId,
+        name: trackData.name,
+        description: trackData.description || '',
+        difficulty: trackData.difficulty || 'intermediate',
+        exams: trackData.exams || [],
+        createdAt: new Date().toISOString(),
+        createdBy: trackData.createdBy || 'admin',
+        updatedAt: new Date().toISOString()
+      };
+
+      await set(ref(database, `exam_tracks/${trackId}`), track);
+      console.log(`✅ Track ${trackId} created:`, track);
+      return { success: true, trackId, track };
+    } catch (error) {
+      console.error('Error creating track:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Get all tracks
+  async getTracks() {
+    try {
+      const snapshot = await get(ref(database, 'exam_tracks'));
+      if (!snapshot.exists()) {
+        return { success: true, tracks: [] };
+      }
+      const tracks = Object.values(snapshot.val() || {});
+      console.log(`✅ Fetched ${tracks.length} tracks`);
+      return { success: true, tracks };
+    } catch (error) {
+      console.error('Error fetching tracks:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Get track by ID
+  async getTrackById(trackId) {
+    try {
+      const snapshot = await get(ref(database, `exam_tracks/${trackId}`));
+      if (!snapshot.exists()) {
+        return { success: false, error: 'Track not found' };
+      }
+      return { success: true, track: snapshot.val() };
+    } catch (error) {
+      console.error('Error fetching track:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Update track
+  async updateTrack(trackId, updates) {
+    try {
+      updates.updatedAt = new Date().toISOString();
+      await update(ref(database, `exam_tracks/${trackId}`), updates);
+      console.log(`✅ Track ${trackId} updated:`, updates);
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating track:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Delete track
+  async deleteTrack(trackId) {
+    try {
+      await remove(ref(database, `exam_tracks/${trackId}`));
+      console.log(`✅ Track ${trackId} deleted`);
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting track:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Add exam to track
+  async addExamToTrack(examId, trackId) {
+    try {
+      // Get current track
+      const trackResult = await this.getTrackById(trackId);
+      if (!trackResult.success) {
+        return trackResult;
+      }
+
+      const track = trackResult.track;
+      const exams = track.exams || [];
+
+      // Add exam if not already in track
+      if (!exams.includes(examId)) {
+        exams.push(examId);
+        await this.updateTrack(trackId, { exams });
+      }
+
+      // Update exam with track_id
+      await this.updateExam(examId, { track_id: trackId });
+
+      console.log(`✅ Exam ${examId} added to track ${trackId}`);
+      return { success: true };
+    } catch (error) {
+      console.error('Error adding exam to track:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Remove exam from track
+  async removeExamFromTrack(examId, trackId) {
+    try {
+      const trackResult = await this.getTrackById(trackId);
+      if (!trackResult.success) {
+        return trackResult;
+      }
+
+      const track = trackResult.track;
+      const exams = (track.exams || []).filter(id => id !== examId);
+      await this.updateTrack(trackId, { exams });
+
+      // Clear track_id from exam
+      await this.updateExam(examId, { track_id: null });
+
+      console.log(`✅ Exam ${examId} removed from track ${trackId}`);
+      return { success: true };
+    } catch (error) {
+      console.error('Error removing exam from track:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Publish exam to track (one-click publish)
+  async publishExamToTrack(examId, trackId) {
+    try {
+      // Update exam status
+      await this.updateExam(examId, {
+        status: 'published',
+        published: true,
+        is_active: true,
+        is_visible: true,
+        track_id: trackId,
+        updatedAt: new Date().toISOString()
+      });
+
+      // Add exam to track
+      const trackResult = await this.getTrackById(trackId);
+      if (trackResult.success) {
+        const track = trackResult.track;
+        const exams = track.exams || [];
+        if (!exams.includes(examId)) {
+          exams.push(examId);
+          await this.updateTrack(trackId, { exams });
+        }
+      }
+
+      console.log(`✅ Exam ${examId} published to track ${trackId}`);
+      return { success: true };
+    } catch (error) {
+      console.error('Error publishing exam to track:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Generate unique ID
+  generateId() {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
 }
 
 export default new DatabaseService();

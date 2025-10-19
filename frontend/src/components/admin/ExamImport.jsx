@@ -8,6 +8,7 @@ import { Label } from '../ui/label';
 import { Alert, AlertDescription } from '../ui/alert';
 import functionsService from '../../services/functionsService';
 import PromptGenerator from './PromptGenerator';
+import PublishToTrackModal from './PublishToTrackModal';
 
 export default function ExamImport() {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -16,6 +17,7 @@ export default function ExamImport() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const [showPublishModal, setShowPublishModal] = useState(false);
   const navigate = useNavigate();
 
   const handleFileChange = (e) => {
@@ -312,7 +314,14 @@ export default function ExamImport() {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex gap-2 pt-2">
+                  <div className="flex gap-2 pt-2 flex-wrap">
+                    <Button
+                      onClick={() => setShowPublishModal(true)}
+                      className="bg-indigo-600 hover:bg-indigo-700 flex-1"
+                    >
+                      <ArrowRight className="mr-2 h-4 w-4" />
+                      Publish to Track
+                    </Button>
                     <Button
                       onClick={() => {
                         // Close the import form and refresh the exam list
@@ -364,6 +373,24 @@ export default function ExamImport() {
           </ul>
         </CardContent>
       </Card>
+
+      {/* Publish to Track Modal */}
+      {showPublishModal && result && (
+        <PublishToTrackModal
+          examId={result.examId}
+          examTitle={result.details?.title || examTitle}
+          onPublished={() => {
+            setShowPublishModal(false);
+            setResult(null);
+            setSelectedFile(null);
+            setExamTitle('');
+            const fileInput = document.getElementById('json-file-input');
+            if (fileInput) fileInput.value = '';
+            window.dispatchEvent(new CustomEvent('closeImportForm'));
+          }}
+          onClose={() => setShowPublishModal(false)}
+        />
+      )}
     </div>
   );
 }
